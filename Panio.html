@@ -1,12 +1,35 @@
 <!DOCTYPE html>
 <html>
-<head><title>SOUND</title></head>
+<head>
+    <title>SOUND</title>
+    <script type="text/javascript" src="paper-full.js"></script>
+    <style type="text/css">
+        canvas {
+            width: 100%;
+            height: 100%;
+            background-color: black;
+        }
+
+        div {
+            position: absolute;
+            color: white;
+            border-bottom: 2px solid lightgray;
+            font-weight: bold;
+        }
+
+        body, html{
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
 <body>
 <div>Use the keys from Q to ] on a QWERTY keyboard to play notes. Press space to hold the pedal! <span id="frequency"></span></div>
+
 <script type="text/javascript">
-
 var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 /**Calculates the piano frequency for  key
  * @return {number}
  */
@@ -15,19 +38,20 @@ function FrequencyCalculation(key){
     var baseRoot = Math.pow(2,(1/12));//12th root of 2
     return Math.pow(baseRoot,(key-49))*baseFreq;
 }
+
 var keys = {
-    81:{frequency:FrequencyCalculation(28), isDown:false},    //q - c3
-    87:{frequency:FrequencyCalculation(30), isDown:false},    //w - d3
-    69:{frequency:FrequencyCalculation(32), isDown:false},    //e - e3
-    82:{frequency:FrequencyCalculation(33), isDown:false},    //r - f3
-    84:{frequency:FrequencyCalculation(35), isDown:false},    //t - g3
-    89:{frequency:FrequencyCalculation(37), isDown:false},    //y - a3
-    85:{frequency:FrequencyCalculation(39), isDown:false},    //u - b3
-    73:{frequency:FrequencyCalculation(40), isDown:false},    //i - c4
-    79:{frequency:FrequencyCalculation(42), isDown:false},    //o - d4
-    80:{frequency:FrequencyCalculation(44), isDown:false},    //p - e4
-    219:{frequency:FrequencyCalculation(45), isDown:false},   //[ - f4
-    221:{frequency:FrequencyCalculation(47), isDown:false}    //] - g4
+    'q':{frequency:FrequencyCalculation(28), isDown:false, color:'#1abc9c'},    //q - c3
+    'w':{frequency:FrequencyCalculation(30), isDown:false, color:'#2ecc71'},    //w - d3
+    'e':{frequency:FrequencyCalculation(32), isDown:false, color:'#3498db'},    //e - e3
+    'r':{frequency:FrequencyCalculation(33), isDown:false, color:'#9b59b6'},    //r - f3
+    't':{frequency:FrequencyCalculation(35), isDown:false, color:'#34495e'},    //t - g3
+    'y':{frequency:FrequencyCalculation(37), isDown:false, color:'#16a085'},    //y - a3
+    'u':{frequency:FrequencyCalculation(39), isDown:false, color:'#27ae60'},    //u - b3
+    'i':{frequency:FrequencyCalculation(40), isDown:false, color:'#2980b9'},    //i - c4
+    'o':{frequency:FrequencyCalculation(42), isDown:false, color:'#8e44ad'},    //o - d4
+    'p':{frequency:FrequencyCalculation(44), isDown:false, color:'#2c3e50'},    //p - e4
+    '[':{frequency:FrequencyCalculation(45), isDown:false, color:'#f1c40f'},   //[ - f4
+    ']':{frequency:FrequencyCalculation(47), isDown:false, color:'#e67e22'}    //] - g4
 };
 real= [0, 0, -0.203569, 0.5, -0.401676, 0.137128, -0.104117, 0.115965,
     -0.004413, 0.067884, -0.00888, 0.0793, -0.038756, 0.011882,
@@ -44,7 +68,6 @@ var NotesInPlay = [];
 var pedalOnDelay = 2;
 var pedalOffDelay = 0.3;
 var pedalDelay = pedalOffDelay;
-
 
 function Note(key){
     var oscillatorNode = audioCtx.createOscillator();
@@ -64,31 +87,65 @@ function Note(key){
 }
 
 document.addEventListener('keydown', function(event) {
-    if (event.keyCode === 32) { // space bar
-        pedalDelay = pedalOnDelay;
-    }else if(!keys[event.keyCode].isDown){
-        keys[event.keyCode].isDown = true;
-        var note = new Note(keys[event.keyCode]);
-        NotesInPlay.push(note);
-        note.Play(pedalOnDelay)
-	}
-
+    if(keys[event.key]){
+        console.log(event);
+        if (event.key === 32) { // space bar
+            pedalDelay = pedalOnDelay;
+        }else if(!keys[event.key].isDown){
+            keys[event.key].isDown = true;
+            var note = new Note(keys[event.key]);
+            NotesInPlay.push(note);
+            note.Play(pedalOnDelay);
+    	}
+    }
 });
 
 document.addEventListener('keyup', function(event) {
-
-    if (event.keyCode === 32) { // space bar
-        pedalDelay =pedalOffDelay;
-    }else if(keys[event.keyCode].isDown){
-        keys[event.keyCode].isDown = false;
-    }
-    NotesInPlay.forEach(function(Note,index){
-        if(((event.keyCode === 32) || Note.Key.frequency===keys[event.keyCode].frequency) && !(Note.Key.isDown)){
-            Note.Play(pedalDelay);
+    if(keys[event.key]){
+        if (event.keyCode === 32) { // space bar
+            pedalDelay =pedalOffDelay;
+        }else if(keys[event.key].isDown){
+            keys[event.key].isDown = false;
         }
-    });
+        NotesInPlay.forEach(function(Note,index){
+            if(((event.keyCode === 32) || Note.Key.frequency===keys[event.key].frequency) && !(Note.Key.isDown)){
+                Note.Play(pedalDelay);
+            }
+        });
+    }
+
 });    
 
 </script>
+
+<script type="text/paperscript" canvas="myCanvas">
+        var circles = [];
+        function onKeyDown(event){
+            var key = event.event.key;
+            if(keys[key]){
+                var maxPoint = new Point(view.size.width, view.size.height);
+                var randomPoint = Point.random();
+                var point = maxPoint * randomPoint;
+                var newCircle = new Path.Circle(point, 500);
+                newCircle.fillColor = keys[event.key].color;
+                circles.push(newCircle);
+            }
+        }
+        function onFrame(event){
+            for(var i=0; i<circles.length; i++){
+                circles[i].fillColor.hue += 1;
+                circles[i].scale(.9);
+                if(circles[i].area < 1){
+                    circles[i].remove(); // remove the circle from the canvas
+                    circles.splice(i, 1); // remove the circle from the array
+                    i--; // decrement i so that the loop doesn't skip a circle because of .splice()
+                    console.log(circles);
+                }
+            }
+        }
+</script>
+
+<canvas id="myCanvas" resize></canvas>
+
 </body>
 </html>
